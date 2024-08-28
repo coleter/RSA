@@ -63,6 +63,7 @@ EncryptionManager.java: Handles the encryption and decryption of files.
     The decrypted file will be named "your_plaintext_file_decoded.txt"
     
 4. Running the Program
+    
     The Driver class demonstrates a simple encoding and decoding process:
     ```
     public class Driver {
@@ -75,10 +76,11 @@ EncryptionManager.java: Handles the encryption and decryption of files.
     ```
 
 5. Customize Key Size
+    
     You can specify the bit length of the keys when creating a new Key object:
     ```
     Key key = new Key(3072); // Generates a key with 3072-bit length
-    
+
     EncryptionManager em = new EncryptionManager(new Key(3072)); 
     ```
 
