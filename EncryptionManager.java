@@ -48,15 +48,15 @@ public class EncryptionManager {
 
 
     /*
-     * Encodes a file using the key
+     * Encrypts a file using the key
      * 
-     * @param f File to encode
+     * @param f File to encrypt
      * 
      * @throws FileNotFoundException if the file is not found
      * @throws IOException if an IO error occurs
      * @throws SecurityException if there are insufficient permissions to access or modify files
      */
-    public void encode(File f) {
+    public void encrypt(File f) {
 		final int BLOCK_SIZE = 214;
 		FileWriter fw = null;
 		try {
@@ -70,14 +70,14 @@ public class EncryptionManager {
 			// Buffer to hold a single block of 214 bytes
 			byte[] thisBlock = new byte[BLOCK_SIZE];
 
-			// Encode each block except the last one
+			// Encrypt each block except the last one
 			for (int i = 0; i < numBlocks - 1; i++) {
 				System.arraycopy(bytes, i * BLOCK_SIZE, thisBlock, 0, BLOCK_SIZE);
 				// Convert the block to a BigInteger and store it
 				bigInts[i] = new BigInteger(thisBlock);
 			}
 
-			// Encode the last block, which may be smaller than 214 bytes
+			// Encrypt the last block, which may be smaller than 214 bytes
 			int remainingBytes = bytes.length % BLOCK_SIZE;
 			byte[] lastBlock = new byte[remainingBytes];
 			System.arraycopy(bytes, (numBlocks - 1) * BLOCK_SIZE, lastBlock, 0, remainingBytes);
@@ -85,7 +85,7 @@ public class EncryptionManager {
 			bigInts[numBlocks - 1] = new BigInteger(lastBlock);
 
 			// Create a new file to store the ciphertext
-			File cipher = new File("cipher.txt");
+			File cipher = new File(f.getName().substring(0, f.getName().lastIndexOf('.')) + "_encrypted.txt");
 			if (cipher.exists() && !cipher.delete()) {
 				throw new IOException("Failed to delete existing file: " + cipher.getName());
 			}
@@ -97,17 +97,17 @@ public class EncryptionManager {
 			fw = new FileWriter(cipher);
 			for (BigInteger bigInt : bigInts) {
 				// Encrypt the block using the key (n, e)
-				BigInteger encryptedBlock = key.encode(bigInt);
+				BigInteger encryptedBlock = key.encrypt(bigInt);
 				// Write the encrypted block as a string to the file
 				fw.write(encryptedBlock.toString() + "\n");
 			}
 
-			System.out.println("cipher.txt file created successfully");
+			System.out.println("encrypted.txt file created successfully");
 
 		} catch (FileNotFoundException e) {
 			System.err.println("File not found: " + f.getName() + ". " + e.getMessage());
 		} catch (IOException e) {
-			System.err.println("IO error occurred during encode: " + e.getMessage());
+			System.err.println("IO error occurred during encryption: " + e.getMessage());
 		} catch (SecurityException e) {
 			System.err.println("Security exception: insufficient permissions to access or modify files.");
 		} finally {
@@ -122,42 +122,42 @@ public class EncryptionManager {
 	}
 
     /*
-     * Encodes a file using another key
+     * Encrypts a file using another key
      * 
-     * @param k Key to encode with
-     * @param f File to decode
+     * @param k Key to encrypt with
+     * @param f File to decrypt
      */
-    public void encode(Key k, File f) {
+    public void encrypt(Key k, File f) {
         EncryptionManager em = new EncryptionManager(k);
-        em.encode(f);
+        em.encrypt(f);
     }
 
     /*
-     * Encodes a file using a key stored in files
+     * Encrypts a file using a key stored in files
      * 
      * @param n File containing n value
      * @param e File containing e value
-     * @param f File to decode
+     * @param f File to decrypt
      */
-    public void encode(File n, File e, File f) {
+    public void encrypt(File n, File e, File f) {
         Key k = new Key(n, e);
-        encode(k, f);
+        encrypt(k, f);
     }
 
     /*
-     * Decodes a file using the key
+     * Decrypts a file using the key
      * 
-     * @param f File to decode
+     * @param f File to decrypt
      */
-    public void decode(File f) {
+    public void decrypt(File f) {
 		FileWriter fw = null;
 		if (!key.hasD()) {
-			System.out.println("This key does not have a private exponent to decode with.");
+			System.out.println("This key does not have a private exponent to decrypt with.");
 			return;
 		}
 		try {
-			// Prepare the output file for the decoded text
-			File out = new File("decoded.txt");
+			// Prepare the output file for the decrypted text
+			File out = new File(f.getName().substring(0, f.getName().lastIndexOf('_')) + "_decrypted.txt");
 			if (out.exists() && !out.delete()) {
 				throw new IOException("Failed to delete existing file: " + out.getName());
 			}
@@ -178,7 +178,7 @@ public class EncryptionManager {
 			// Decrypt each BigInteger block and write the result to the output file
 			fw = new FileWriter(out);
 			for (BigInteger b : bs) {
-				b = key.decode(b); // Decrypt the block using the private key (d, n)
+				b = key.decrypt(b); // Decrypt the block using the private key (d, n)
 				byte[] arr = b.toByteArray(); // Convert the decrypted BigInteger back to a byte array
 	
 				// Write non-null bytes to the output file
@@ -188,12 +188,12 @@ public class EncryptionManager {
 					}
 				}
 			}
-			System.out.println("Decoded file created successfully");
+			System.out.println("decrypted.txt file created successfully");
 	
 		} catch (FileNotFoundException e) {
 			System.err.println("File not found: " + f.getName() + ". " + e.getMessage());
 		} catch (IOException e) {
-			System.err.println("IO error occurred during decode: " + e.getMessage());
+			System.err.println("IO error occurred during decrypt: " + e.getMessage());
 		} catch (SecurityException e) {
 			System.err.println("Security exception: insufficient permissions to access or modify files.");
 		} finally {
@@ -208,27 +208,27 @@ public class EncryptionManager {
 	}
 
     /*
-     * Decodes a file using another key
+     * Decrypts a file using another key
      * 
-     * @param k Key to decode with
-     * @param f File to decode
+     * @param k Key to decrypt with
+     * @param f File to decrypt
      */
-    public void decode(Key k, File f) {
+    public void decrypt(Key k, File f) {
         EncryptionManager em = new EncryptionManager(k);
-        em.decode(f);
+        em.decrypt(f);
     }
 
     /*
-     * Decodes a file using a key stored in files
+     * Decrypts a file using a key stored in files
      * 
      * @param n File containing n value
      * @param e File containing e value
      * @param d File containing d value
-     * @param f File to decode
+     * @param f File to decrypt
      */
-    public void decode(File n, File e, File d, File f) {
+    public void decrypt(File n, File e, File d, File f) {
         EncryptionManager em = new EncryptionManager(n, e, d);
-        em.decode(f);
+        em.decrypt(f);
     }
 
 }

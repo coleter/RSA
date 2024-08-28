@@ -305,24 +305,24 @@ public class Key {
 	}
 
 	/**
-	 * Encodes the given BigInteger using this key.
+	 * Encrypts the given BigInteger using this key.
 	 * 
-	 * @param b the BigInteger to encode.
+	 * @param b the BigInteger to encrypt.
 	 * @return an encrypted BigInteger.
 	 */
-	public BigInteger encode(BigInteger b) {
+	public BigInteger encrypt(BigInteger b) {
 		return b.modPow(e, n);
 	}
 
 	/**
-	 * Decodes the given BigInteger using this key.
+	 * Decrypt the given BigInteger using this key.
 	 * 
-	 * @param b the BigInteger to decode.
+	 * @param b the BigInteger to decrypt.
 	 * @return a decrypted BigInteger.
 	 */
-	public BigInteger decode(BigInteger b) {
+	public BigInteger decrypt(BigInteger b) {
 		if (d == null) {
-			System.out.println("This key does not have a private exponent to decode with.");
+			System.out.println("This key does not have a private exponent to decrypt with.");
 			return null;
 		}
 		return b.modPow(d, n);
